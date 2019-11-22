@@ -5,6 +5,7 @@
 #include "spn.hpp"
 
 #include <iostream>
+#include <string.h>
 
 
 SPN::SPN() :
@@ -19,12 +20,11 @@ SPN::SPN() :
 
 bool SPN::keysched(const char* key)
 {
-	int i;
 	//PRE: key = 80 bit hexstring -- 20 hex characters
 	if (strlen(key) != 20)
 		return false;
 
-	for (i = 0; i <= Nr; i++)
+	for (size_t i = 0; i <= Nr; i++)
 	{
 		if (sscanf(key + 4 * i, "%04hx", &m_subkeys[i]) != 1)
 			return false;
@@ -116,11 +116,10 @@ uint16_t SPN::transp(uint16_t x) const
 uint16_t SPN::encrypt(uint16_t pt) const
 {
 	uint16_t x;
-	int i;
 
 	x = pt ^ m_subkeys[0];
 
-	for (i = 1; i < Nr; i++)
+	for (size_t i = 1; i < Nr; i++)
 	{
 		x = subst(x);
 		x = transp(x);
@@ -137,12 +136,11 @@ uint16_t SPN::encrypt(uint16_t pt) const
 uint16_t SPN::decrypt(uint16_t ct) const
 {
 	uint16_t x;
-	int i;
 
 	x = ct ^ m_subkeys[Nr];
 	x = isubst(x);
 
-	for (i = Nr - 1; i >= 1; i--)
+	for (size_t i = Nr - 1; i >= 1; i--)
 	{
 		x = x ^ m_subkeys[i];
 		x = itransp(x);

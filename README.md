@@ -30,6 +30,7 @@ Open the solution, choose the Release x64 build and build it.
 
 Tested with:
 - Apple clang version 11.0.0 (clang-1100.0.33.12)
+- g++ (Ubuntu 7.4.0-1ubuntu1~18.04.1) 7.4.0
 
 ## Usage
       KeyFinder [OPTION...] <CIPHERTEXT_LIST> <SBOX>

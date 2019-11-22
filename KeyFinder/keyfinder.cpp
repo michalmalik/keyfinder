@@ -854,7 +854,6 @@ std::vector<KeyFinder::Path> KeyFinder::findBestPaths(const std::vector<Path>& p
 
 std::vector<KeyFinder::HistReturn> KeyFinder::findMaxInHist(const std::map<uint16_t, size_t>& hist) const
 {
-	uint16_t max_k = 0;
 	size_t max_v = 0;
 
 	for (const auto& p : hist)
@@ -862,7 +861,6 @@ std::vector<KeyFinder::HistReturn> KeyFinder::findMaxInHist(const std::map<uint1
 		if (p.second > max_v)
 		{
 			max_v = p.second;
-			max_k = p.first;
 		}
 	}
 
