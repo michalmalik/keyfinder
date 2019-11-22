@@ -96,7 +96,7 @@ uint16_t KeyFinder::recoverSecondSubkey() const
 		uint16_t ct = m_pc1[x];
 		if (m_spn.decryptWithKeys(ct, subkeys) == x)
 		{
-			fprintf(stderr, "found key[1] = %04hx\n", x);
+			fprintf(stderr, "found key[1] = %04hx\n", static_cast<uint16_t>(x));
 			auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
 			std::cerr << "took: " << elapsed.count() / 1000.0f << "s\n";
 

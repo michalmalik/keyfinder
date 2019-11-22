@@ -13,6 +13,24 @@ Implemented for an assignment for 'Design and cryptanalysis of ciphers' at FEI S
 Last subkey recovery http://www.engr.mun.ca/~howard/PAPERS/ldc_tutorial.pdf
 
 
+## How to compile
+
+### Windows
+
+Tested with:
+- MSVC 2019
+- MSVC 2017
+
+Open the solution, choose the Release x64 build and build it.
+
+### macOS, Linux
+
+1. Go to KeyFinder/Generator folder
+2. make
+
+Tested with:
+- Apple clang version 11.0.0 (clang-1100.0.33.12)
+
     Usage:
       KeyFinder [OPTION...] <CIPHERTEXT_LIST> <SBOX>
 
