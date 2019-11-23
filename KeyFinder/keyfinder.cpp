@@ -60,6 +60,22 @@ std::string KeyFinder::getKeyStr() const
 }
 
 
+bool KeyFinder::testKey(const std::string& key) const
+{
+	m_spn.keysched(key.c_str());
+
+	for (size_t i = 0; i < m_pc1.size(); ++i)
+	{
+		if (m_spn.encrypt(static_cast<uint16_t>(i)) != m_pc1[i])
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
 uint16_t KeyFinder::recoverFirstSubkey()
 {
 	if (m_compute_3_sboxes || m_compute_4_sboxes)
@@ -550,10 +566,11 @@ uint16_t KeyFinder::findPathForRound(size_t round_num, uint16_t prev_round_in_di
 
 			if (m_verbose == VERBOSE_VERY)
 			{
-				fprintf(stderr, "\tsbox=%d, dx=%d, dy=%d, round_in_diff=%04hx, next_out_diff=%04hx, active_count_in_next=%zd\n",
+				fprintf(stderr, "\tsbox=%d, dx=%d, dy=%d, distrib=%d, round_in_diff=%04hx, next_out_diff=%04hx, active_count_in_next=%zd\n",
 					sbox_index,
 					dx,
 					SboxValue(sbox_index, round_out_diff),
+					max_distrib,
 					potential_round_in_diff,
 					next_round_out_diff,
 					next_out_active_count);
@@ -617,7 +634,7 @@ std::map<uint16_t, size_t> KeyFinder::getProbableFirstSubkey(const Path& path) c
 
 	if (m_verbose >= VERBOSE_MEDIUM)
 	{
-		fprintf(stderr, "pc pairs required: %zd\n", num);
+		fprintf(stderr, "valid pc pairs: %zd\n", num);
 	}
 
 	return hist;
@@ -660,7 +677,7 @@ std::map<uint16_t, size_t> KeyFinder::getProbableLastSubkey(const Path& path) co
 
 	if (m_verbose >= VERBOSE_MEDIUM)
 	{
-		fprintf(stderr, "pc pairs required: %zd\n", num);
+		fprintf(stderr, "valid pc pairs: %zd\n", num);
 	}
 
 	return hist;

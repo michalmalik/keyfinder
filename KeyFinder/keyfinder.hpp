@@ -65,10 +65,11 @@ public:
 		bool compute_4_sboxes = false);
 
 	std::vector<uint16_t> &getSubkeys() { return m_subkeys; }
-	const std::vector<std::vector<uint16_t>>& getDiffTable() { return m_spn.getDiffTable(); }
-	const std::vector<uint16_t>& getPCPairs() const { return m_pc1; }
+	const std::vector<std::vector<uint16_t>>& getDiffTable() const { return m_spn.getDiffTable(); }
 	void setVerbose(int level) { m_verbose = static_cast<VerboseLevel>(level); }
 	std::string getKeyStr() const;
+
+	bool testKey(const std::string& key) const;
 
 	// Subkey recovery functions
 	//

@@ -26,6 +26,7 @@ int main(int argc, char** argv)
 
 	// Mode
 	bool first_subkey_only = false;
+	std::vector<std::string> subkeys_for_second;
 	bool last_subkey_only = false;
 	std::vector<std::string> backward_subkeys;
 	bool find_all_subkeys = false;
@@ -77,6 +78,8 @@ int main(int argc, char** argv)
 		options.add_options("Mode")
 			("f,first", "Calculate first subkey only", cxxopts::value<bool>(first_subkey_only))
 			("l,last", "Calculate last subkey only", cxxopts::value<bool>(last_subkey_only))
+			("s,second", "Calculate 2nd subkey only",
+				cxxopts::value<std::vector<std::string>>(), "key1,xxxx,key3,key4,key5")
 			("backward",
 				"Used to calculate a specific subkey (backward). Next one after given will be calculated."
 				" List of comma-separated subkeys to use (before the one(s) you want, going from right to left), last subkey first, format hhhh.",
@@ -109,6 +112,15 @@ int main(int argc, char** argv)
 		{
 			std::cerr << options.help() << '\n';
 			exit(0);
+		}
+
+		if (result.count("second"))
+		{
+			const auto& v = result["second"].as<std::vector<std::string>>();
+			for (const auto& s : v)
+			{
+				subkeys_for_second.push_back(s);
+			}
 		}
 
 		if (result.count("backward"))
@@ -158,15 +170,52 @@ int main(int argc, char** argv)
 
 	if (first_subkey_only)
 	{
-		uint16_t key0 = finder.recoverFirstSubkey();
-		printf("%04hx\n", key0);
-		finder.getSubkeys()[0] = key0;
+		uint16_t k0 = finder.recoverFirstSubkey();
+		printf("%04hx\n", k0);
+		finder.getSubkeys()[0] = k0;
 	}
 	else if (last_subkey_only)
 	{
 		uint16_t k4 = finder.recoverLastSubkey();
 		printf("%04hx\n", k4);
 		finder.getSubkeys()[SPN::Nr] = k4;
+	}
+	else if (!subkeys_for_second.empty())
+	{
+		if (subkeys_for_second.size() != 5)
+		{
+			std::cerr << "wrong number of keys\n";
+			return EXIT_FAILURE;
+		}
+
+		size_t i = 0;
+		for (i = 0; i < subkeys_for_second.size(); ++i)
+		{
+			if (i == 1)
+			{
+				continue;
+			}
+
+			uint16_t key = 0;
+			if (sscanf(subkeys_for_second[i].c_str(), "%04hx", &key) != 1)
+			{
+				std::cerr << "cant parse key in list: " << subkeys_for_second[i] << '\n';
+				return EXIT_FAILURE;
+			}
+
+			finder.getSubkeys()[i] = key;
+			fprintf(stderr, "using a given key[%zd]=%04hx\n", i, key);
+		}
+
+		uint16_t k1 = finder.recoverSecondSubkey();
+		finder.getSubkeys()[1] = k1;
+
+		std::string key = finder.getKeyStr();
+		std::cerr << "full key: " << key << '\n';
+
+		std::cout << key << '\n';
+		std::cout << "key is " << (finder.testKey(key) ? "ok" : "wrong") << '\n';
+
 	}
 	else if (!backward_subkeys.empty())
 	{
@@ -176,7 +225,7 @@ int main(int argc, char** argv)
 			uint16_t key = 0;
 			if (sscanf(backward_subkeys[i].c_str(), "%04hx", &key) != 1)
 			{
-				std::cout << "cant parse key in list: " << backward_subkeys[i] << '\n';
+				std::cerr << "cant parse key in list: " << backward_subkeys[i] << '\n';
 				return EXIT_FAILURE;
 			}
 
@@ -191,7 +240,7 @@ int main(int argc, char** argv)
 
 		if (wanted_key_index <= 1)
 		{
-			std::cout << "this does not work for key[0], key[1] properly, use another method\n";
+			std::cerr << "this does not work for key[0], key[1] properly, use another method\n";
 			return EXIT_FAILURE;
 		}
 
@@ -235,24 +284,15 @@ int main(int argc, char** argv)
 		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
 		std::cerr << "took: " << elapsed.count() / 1000.0f << "s\n";
 
-		std::cout << "full key: " << finder.getKeyStr() << '\n';
+		std::string key = finder.getKeyStr();
+		std::cerr << "full key: " << key << '\n';
+
+		std::cout << key << '\n';
+		std::cout << "key is " << (finder.testKey(key) ? "ok" : "wrong") << '\n';
 	}
 	else if (!given_key.empty())
 	{
-		spn.keysched(given_key.c_str());
-
-		const auto& pc = finder.getPCPairs();
-
-		bool ok = true;
-		for (size_t i = 0; i < pc.size(); ++i)
-		{
-			if (spn.encrypt(static_cast<uint16_t>(i)) != pc[i])
-			{
-				ok = false;
-				break;
-			}
-		}
-
+		bool ok = finder.testKey(given_key);
 		if (ok)
 		{
 			std::cerr << "key is ok\n";
